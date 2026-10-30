@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SawitPro - Monitoring Produksi Perkebunan Kelapa Sawit</title>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header class="navbar">
+    <div class="nav-brand">
+      <div class="brand-icon">🌴</div>
+      <div>
+        <span class="brand-title">SawitPro</span>
+        <span class="brand-subtitle">Sistem Monitoring Panen & Produksi TBS</span>
+      </div>
+    </div>
+    <div class="nav-actions">
+      <div class="estate-badge">
+        <span>📍</span>
+        <span>Kebun Raya Mandiri (1.350 Ha)</span>
+      </div>
+      <button class="btn btn-outline btn-sm" id="btnResetDemoData" title="Reset ke data sampel demo" style="color:#ffffff; border-color:rgba(255,255,255,0.3); background: rgba(255,255,255,0.1);">
+        🔄 Reset Demo
+      </button>
+    </div>
+  </header>
+
+  <main class="app-container">
+
+    <!-- Navigation Pills / Tabs -->
+    <nav class="nav-tabs">
+      <button class="tab-btn active" data-tab="view-dashboard">
+        📊 Dashboard Ringkasan
+      </button>
+      <button class="tab-btn" data-tab="view-table">
+        📋 Catatan Buku Panen
+      </button>
+      <button class="tab-btn" data-tab="view-master">
+        🗺️ Data Blok & Afdeling
+      </button>
+      <button class="tab-btn" data-tab="view-guide">
+        📖 Panduan & SOP Panen
+      </button>
+    </nav>
+
+    <!-- Global Filter & Action Bar -->
+    <section class="filter-card">
+      <div class="filter-group">
+        <div class="input-group">
+          <label class="input-label" for="filterAfdeling">Afdeling</label>
+          <select id="filterAfdeling" class="select-control">
+            <option value="ALL">Semua Afdeling</option>
+          </select>
+        </div>
+
+        <div class="input-group">
+          <label class="input-label" for="filterStartDate">Dari Tanggal</label>
+          <input type="date" id="filterStartDate" class="input-control">
+        </div>
+
+        <div class="input-group">
+          <label class="input-label" for="filterEndDate">Sampai Tanggal</label>
+          <input type="date" id="filterEndDate" class="input-control">
+        </div>
+
+        <div class="input-group">
+          <label class="input-label" for="searchInput">Pencarian</label>
+          <input type="text" id="searchInput" class="input-control" placeholder="Cari ID, Blok, Mandor...">
+        </div>
+
+        <button class="btn btn-outline" id="btnResetFilter" title="Reset Filter" style="align-self: flex-end; padding: 0.55rem 0.85rem;">
+          ✖ Reset
+        </button>
+      </div>
+
+      <div class="filter-actions">
+        <button class="btn btn-outline" id="btnExportCSV">
+          📥 Unduh CSV
+        </button>
+        <button class="btn btn-primary" id="btnOpenModal">
+          ➕ Catat Panen TBS
+        </button>
+      </div>
+    </section>
+
+    <!-- ================= VIEW: DASHBOARD ================= -->
+    <section id="view-dashboard" class="view-section active">
+      
+      <!-- Metrics Overview Cards -->
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div>
+            <div class="metric-label">Total Produksi TBS</div>
+            <div class="metric-value">
+              <span id="kpiTotalTon">0</span>
+              <span class="metric-unit">Ton</span>
+            </div>
+            <div class="metric-meta meta-up">
+              <span>▲</span> Realisasi panen terpilih
+            </div>
+          </div>
+          <div class="metric-icon-box">⚖️</div>
+        </div>
+
+        <div class="metric-card accent-orange">
+          <div>
+            <div class="metric-label">Total Janjang Panen</div>
+            <div class="metric-value">
+              <span id="kpiTotalJanjang">0</span>
+              <span class="metric-unit">Janjang</span>
+            </div>
+            <div class="metric-meta" style="color: var(--secondary);">
+              <span>🌴</span> Total tandan dipanen
+            </div>
+          </div>
+          <div class="metric-icon-box">🍈</div>
+        </div>
+
+        <div class="metric-card accent-blue">
+          <div>
+            <div class="metric-label">Rata-rata BJR</div>
+            <div class="metric-value">
+              <span id="kpiAvgBJR">0</span>
+              <span class="metric-unit">Kg/Jjg</span>
+            </div>
+            <div class="metric-meta" style="color: var(--status-info);">
+              <span>🎯</span> Berat Janjang Rata-rata
+            </div>
+          </div>
+          <div class="metric-icon-box">📊</div>
+        </div>
+
+        <div class="metric-card accent-gold">
+          <div>
+            <div class="metric-label">Capaian Target Bulanan</div>
+            <div class="metric-value">
+              <span id="kpiTargetPct">0%</span>
+            </div>
+            <div class="metric-meta meta-up">
+              <span>📈</span> Terhadap target afdeling
+            </div>
+          </div>
+          <div class="metric-icon-box">🎯</div>
+        </div>
+      </div>
+
+      <!-- Main Visualizations Grid -->
+      <div class="charts-grid">
+        <!-- Production Daily Trend -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <div class="chart-title">📈 Tren Harian Produksi TBS</div>
+              <div class="chart-subtitle">Tonase (Batang) dan Total Janjang (Garis) per tanggal panen</div>
+            </div>
+          </div>
+          <div class="chart-canvas-wrapper">
+            <canvas id="productionTrendChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Afdeling Distribution -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <div class="chart-title">🌾 Distribusi Afdeling</div>
+              <div class="chart-subtitle">Proporsi tonase TBS antar Afdeling</div>
+            </div>
+          </div>
+          <div class="chart-canvas-wrapper">
+            <canvas id="afdelingDistributionChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Secondary Chart Row: Quality Composition -->
+      <div class="charts-row-split">
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <div class="chart-title">🔍 Mutu & Kualitas Buah TBS</div>
+              <div class="chart-subtitle">Persentase kematangan buah (Matang vs Mengkal/Afkir)</div>
+            </div>
+          </div>
+          <div class="chart-canvas-wrapper" style="height: 240px;">
+            <canvas id="qualityChart"></canvas>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <div class="chart-title">💡 Indikator Operasional Kunci</div>
+              <div class="chart-subtitle">Standar performa perkebunan kelapa sawit</div>
+            </div>
+          </div>
+          <div style="padding: 0.5rem 0; font-size: 0.875rem;">
+            <div style="margin-bottom: 0.85rem; padding-bottom: 0.5rem; border-bottom: 1px dashed var(--border);">
+              <strong style="color: var(--primary);">Standar BJR Optimal:</strong>
+              <p style="color: var(--text-muted); font-size: 0.8rem;">18.0 - 24.0 Kg untuk tanaman umur > 8 tahun. Buah dengan BJR di atas 20 kg menandakan nutrisi dan perawatan TM (Tanaman Menghasilkan) sangat baik.</p>
+            </div>
+            <div style="margin-bottom: 0.85rem; padding-bottom: 0.5rem; border-bottom: 1px dashed var(--border);">
+              <strong style="color: var(--secondary);">Toleransi Brondolan & Restan:</strong>
+              <p style="color: var(--text-muted); font-size: 0.8rem;">Maksimal restan 24 jam di TPH untuk menjaga kadar asam lemak bebas (ALB/FFA) CPO tetap di bawah 3.5%.</p>
+            </div>
+            <div>
+              <strong style="color: var(--status-info);">Kriteria Matang Panen:</strong>
+              <p style="color: var(--text-muted); font-size: 0.8rem;">Minimal 5 brondolan jatuh secara alami di piringan per tandan sebelum dipotong.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ================= VIEW: TABLE PANEN ================= -->
+    <section id="view-table" class="view-section">
+      <div class="table-card">
+        <div class="table-header-row">
+          <div class="table-title-area">
+            <h3>Buku Catatan Panen Lapangan (TBS)</h3>
+            <p>Daftar seluruh transaksi pemanenan terverifikasi dari TPH</p>
+          </div>
+          <span class="badge badge-gray" id="tableRecordCount">0 transaksi</span>
+        </div>
+
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>No. Tiket</th>
+                <th>Tanggal</th>
+                <th>Afdeling</th>
+                <th>Blok</th>
+                <th>Mandor / Pemanen</th>
+                <th>Janjang</th>
+                <th>Tonase (Kg)</th>
+                <th>BJR</th>
+                <th>Mutu Buah</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="harvestTableBody">
+              <!-- Rendered dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= VIEW: MASTER AFDELING & BLOK ================= -->
+    <section id="view-master" class="view-section">
+      <div style="margin-bottom: 1.25rem;">
+        <h3 style="font-size: 1.15rem; font-weight: 700;">Data Master Blok & Varietas Tanaman</h3>
+        <p style="font-size: 0.825rem; color: var(--text-muted);">Informasi luas areal, tahun tanam, dan target produksi per blok</p>
+      </div>
+
+      <div class="estate-blocks-grid" id="masterBloksContainer">
+        <!-- Rendered dynamically -->
+      </div>
+    </section>
+
+    <!-- ================= VIEW: GUIDE & SOP ================= -->
+    <section id="view-guide" class="view-section">
+      <div class="table-card" style="line-height: 1.7;">
+        <h3 style="margin-bottom: 0.75rem;">Standar Operasional Prosedur (SOP) Panen & Angkut TBS</h3>
+        
+        <h4 style="color: var(--primary); margin-top: 1rem;">1. Kriteria Kematangan TBS (Fraksi Buah)</h4>
+        <ul style="padding-left: 1.5rem; color: var(--text-muted); font-size: 0.875rem;">
+          <li><strong>Fraksi 00 (Sangat Mentah):</strong> Buah berwarna hitam legam, tidak ada brondolan lepas. Dilarang dipanen (Denda Mandor/Pemanen).</li>
+          <li><strong>Fraksi 0 (Mentah):</strong> Buah kemerahan, 1-12% brondolan lepas. Diusahakan dihindari.</li>
+          <li><strong>Fraksi 1 - 2 (Matang Sempurna):</strong> 12.5% - 50% brondolan lepas alami. Ini adalah standar kualitas emas pabrik kelapa sawit (PKS).</li>
+          <li><strong>Fraksi 3 - 4 (Lewat Matang):</strong> >50% brondolan lepas. Segera angkut untuk menghindari lonjakan FFA.</li>
+        </ul>
+
+        <h4 style="color: var(--primary); margin-top: 1rem;">2. Pemotongan Gagang Tandan (V-Cut)</h4>
+        <p style="color: var(--text-muted); font-size: 0.875rem;">Gagang tandan harus dipotong rapat hingga berbentuk huruf V atau mepet tandan (maksimal panjang tangkai 2 cm) untuk mencegah serapan minyak pada tangkai saat ekstraksi.</p>
+
+        <h4 style="color: var(--primary); margin-top: 1rem;">3. Kutip Brondolan & Penataan di TPH</h4>
+        <p style="color: var(--text-muted); font-size: 0.875rem;">Seluruh brondolan yang jatuh di piringan, pasar rintis, dan gawangan harus dikutip bersih tanpa tersisa tanah/pasir dan ditumpuk terpisah pada karung di TPH (Tempat Pengumpulan Hasil).</p>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      SawitPro &copy; 2026 Perkebunan Kelapa Sawit Terpadu. Dibangun dengan HTML5, CSS3, & Vanilla JavaScript.
+    </footer>
+
+  </main>
+
+  <!-- ================= MODAL: INPUT CATATAN PANEN ================= -->
+  <div class="modal-overlay" id="modalHarvest">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>➕ Catat Transaksi Panen TBS</h3>
+        <button class="modal-close-btn" id="btnCloseModal">&times;</button>
+      </div>
+      
+      <form id="formHarvest">
+        <div class="modal-body">
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label for="modalTanggal">Tanggal Panen *</label>
+              <input type="date" id="modalTanggal" required>
+            </div>
+            <div class="form-group">
+              <label for="modalAfdeling">Afdeling *</label>
+              <select id="modalAfdeling" required>
+                <!-- Dynamic -->
+              </select>
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label for="modalBlok">Blok Perkebunan *</label>
+              <select id="modalBlok" required>
+                <!-- Dynamic -->
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="modalMandor">Mandor Lapangan *</label>
+              <select id="modalMandor" required>
+                <!-- Dynamic -->
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="modalPemanen">Nama Pemanen (Pisahkan koma)</label>
+            <input type="text" id="modalPemanen" placeholder="Contoh: Budi, Slamet, Sugeng">
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label for="modalJanjang">Jumlah Janjang (Tandan) *</label>
+              <input type="number" id="modalJanjang" min="1" step="1" placeholder="cth: 450" required>
+            </div>
+            <div class="form-group">
+              <label for="modalBeratKg">Total Berat TBS (Kg) *</label>
+              <input type="number" id="modalBeratKg" min="1" step="0.1" placeholder="cth: 9000" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Kalkulasi BJR Otomatis (Berat Janjang Rata-rata)</label>
+            <div class="computed-badge">
+              <span>Hasil BJR:</span>
+              <span id="modalBJRPreview">0.00 Kg / Janjang</span>
+            </div>
+            <div class="form-help">BJR = Total Berat (Kg) dibagi Jumlah Janjang</div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label for="modalKualitas">Kualitas Tandan *</label>
+              <select id="modalKualitas">
+                <option value="Matang Sempurna">Matang Sempurna (Fraksi 1-2)</option>
+                <option value="Mengkal (Kurang Matang)">Mengkal (Fraksi 0)</option>
+                <option value="Terlalu Matang">Terlalu Matang (Fraksi 3-4)</option>
+                <option value="Janjang Kosong / Afkir">Janjang Kosong / Afkir</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="modalStatusPengiriman">Status Pengiriman</label>
+              <select id="modalStatusPengiriman">
+                <option value="Di TPH (Siap Angkut)">Di TPH (Siap Angkut)</option>
+                <option value="Terkirim ke PKS">Terkirim ke PKS</option>
+                <option value="Restan">Restan (Tertunda)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="modalCatatan">Catatan Lapangan</label>
+            <textarea id="modalCatatan" rows="2" placeholder="Catatan armada angkut, kondisi cuaca rintis, dll."></textarea>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" id="btnCancelModal">Batal</button>
+          <button type="submit" class="btn btn-primary">Simpan Transaksi</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Application Logic Scripts -->
+  <script src="data.js"></script>
+  <script src="storage.js"></script>
+  <script src="charts.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
