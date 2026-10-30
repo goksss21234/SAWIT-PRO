@@ -1,0 +1,250 @@
+/* ==========================================================================
+   SIMP-TBS Kelapa Sawit - Custom Styles & Theme
+   Palet: Dark Green, Fresh Green, Palm Yellow/Gold, Clean White
+   ========================================================================== */
+
+:root {
+  --primary-dark: #1b4332;
+  --primary-deep: #081c15;
+  --primary: #2d6a4f;
+  --primary-light: #52b788;
+  --primary-subtle: #d8f3dc;
+  --accent-gold: #e9c46a;
+  --accent-orange: #f4a261;
+  --accent-red: #e76f51;
+  --surface: #ffffff;
+  --surface-alt: #f8fafc;
+  --text-main: #1e293b;
+  --text-muted: #64748b;
+  --border: #e2e8f0;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Glassmorphism & Cards */
+.card-sawit {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.875rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+  transition: all 0.2s ease-in-out;
+}
+
+.card-sawit:hover {
+  box-shadow: 0 4px 12px 0 rgba(27, 67, 50, 0.08);
+}
+
+.card-metric-green {
+  background: linear-gradient(135deg, #1b4332 0%, #2d6a4f 100%);
+  color: #ffffff;
+}
+
+.card-metric-lightgreen {
+  background: linear-gradient(135deg, #2d6a4f 0%, #40916c 100%);
+  color: #ffffff;
+}
+
+.card-metric-gold {
+  background: linear-gradient(135deg, #b7791f 0%, #d69e2e 100%);
+  color: #ffffff;
+}
+
+.card-metric-emerald {
+  background: linear-gradient(135deg, #065f46 0%, #059669 100%);
+  color: #ffffff;
+}
+
+/* Brand Gradient */
+.brand-gradient {
+  background: linear-gradient(135deg, #081c15 0%, #1b4332 50%, #2d6a4f 100%);
+}
+
+.gold-gradient {
+  background: linear-gradient(135deg, #f4a261 0%, #e9c46a 100%);
+}
+
+/* Sidebar Active Nav */
+.nav-item {
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.nav-item.active {
+  background-color: rgba(82, 183, 136, 0.18);
+  color: #52b788;
+  font-weight: 600;
+}
+
+.nav-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 15%;
+  height: 70%;
+  width: 4px;
+  background-color: #52b788;
+  border-radius: 0 4px 4px 0;
+}
+
+/* Status Badges */
+.badge-tercapai {
+  background-color: #d1fae5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+.badge-mendekati {
+  background-color: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+}
+
+.badge-belum {
+  background-color: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+/* Custom Table Styles */
+.table-sawit th {
+  background-color: #f8fafc;
+  color: #475569;
+  font-weight: 600;
+  font-size: 0.775rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.table-sawit td {
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  color: #334155;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.table-sawit tr:hover td {
+  background-color: #f8fafc;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Toast Notifications */
+#toast-container {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  pointer-events: none;
+}
+
+.toast {
+  pointer-events: auto;
+  animation: slideInRight 0.3s ease forwards;
+  min-width: 280px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+/* Modal Backdrop */
+.modal-backdrop {
+  background-color: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(3px);
+}
+
+/* PRINT STYLESHEET - Formatting for Official Plantation Reports */
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-size: 11pt !important;
+  }
+
+  aside, header, #role-banner, #toast-container, .no-print, button, .btn-action, input[type="search"], select {
+    display: none !important;
+  }
+
+  main {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    box-shadow: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+
+  .card-sawit {
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    page-break-inside: auto;
+  }
+
+  tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+
+  th, td {
+    border: 1px solid #333333 !important;
+    padding: 6px 8px !important;
+    font-size: 9.5pt !important;
+  }
+
+  th {
+    background-color: #eeeeee !important;
+    color: #000 !important;
+  }
+
+  .print-header {
+    border-bottom: 2px solid #000;
+    margin-bottom: 15px;
+    padding-bottom: 8px;
+  }
+
+  @page {
+    size: A4 landscape;
+    margin: 1.2cm;
+  }
+}
+
+.print-only {
+  display: none;
+}

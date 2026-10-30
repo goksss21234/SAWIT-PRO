@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SIMP-TBS - Sistem Monitoring Panen & Produktivitas TBS Kelapa Sawit</title>
+
+  <!-- Google Fonts: Inter & Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'Inter', 'sans-serif'],
+          },
+          colors: {
+            plantation: {
+              900: '#081c15',
+              800: '#1b4332',
+              700: '#2d6a4f',
+              600: '#40916c',
+              500: '#52b788',
+              400: '#74c69d',
+              300: '#95d5b2',
+              100: '#d8f3dc',
+              50: '#f0fdf4'
+            },
+            sawitGold: {
+              DEFAULT: '#e9c46a',
+              hover: '#d4a373',
+              dark: '#b7791f'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Font Awesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Custom Theme & Print Styles -->
+  <link rel="stylesheet" href="css/styles.css">
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- SheetJS (xlsx) for Excel Export -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+
+<body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen flex flex-col">
+
+  <div class="flex h-screen overflow-hidden">
+    <!-- =========================================================================
+         SIDEBAR NAVIGATION
+         ========================================================================= -->
+    <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-slate-300 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out flex flex-col justify-between border-r border-slate-800/80 shadow-2xl lg:shadow-none lg:static">
+      <div>
+        <!-- Sidebar Brand / Logo -->
+        <div class="h-20 flex items-center justify-between px-6 border-b border-slate-800/80 bg-slate-950/60">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-green-400 flex items-center justify-center text-white shadow-lg shadow-emerald-900/40">
+              <i class="fa-solid fa-seedling text-lg"></i>
+            </div>
+            <div>
+              <div class="font-extrabold text-white text-base tracking-wide flex items-center gap-1.5">
+                SIMP-TBS
+                <span class="bg-amber-400 text-slate-950 text-[10px] font-black px-1.5 py-0.2 rounded">SAWIT</span>
+              </div>
+              <div class="text-[11px] text-emerald-400 font-medium">Monitoring & Produktivitas</div>
+            </div>
+          </div>
+          <!-- Close button on mobile -->
+          <button id="btn-close-sidebar" class="lg:hidden text-slate-400 hover:text-white focus:outline-none">
+            <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
+        </div>
+
+        <!-- Estate Quick Badge -->
+        <div class="px-5 py-3 bg-emerald-950/40 border-b border-slate-800/60 flex items-center gap-2.5 text-xs text-slate-300">
+          <i class="fa-solid fa-tree text-emerald-400"></i>
+          <span class="truncate font-medium text-emerald-200">PT Sawit Makmur Perkasa</span>
+        </div>
+
+        <!-- Navigation Links -->
+        <nav class="p-3 space-y-1 overflow-y-auto max-h-[calc(100vh-210px)]">
+          <!-- 1. Dashboard -->
+          <a href="#" data-view="dashboard" class="nav-item active flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800/70">
+            <i class="fa-solid fa-chart-pie w-5 text-center text-emerald-400"></i>
+            <span>Dashboard Utama</span>
+          </a>
+
+          <!-- 2. Aktivitas Panen -->
+          <a href="#" data-view="panen" class="nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800/70">
+            <i class="fa-solid fa-clipboard-list w-5 text-center text-emerald-400"></i>
+            <span>Aktivitas Panen TBS</span>
+          </a>
+
+          <!-- 3. Produktivitas TBS -->
+          <a href="#" data-view="produktivitas" class="nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800/70">
+            <i class="fa-solid fa-scale-balanced w-5 text-center text-emerald-400"></i>
+            <span>Produktivitas TBS</span>
+          </a>
+
+          <!-- 4. Kinerja Karyawan -->
+          <a href="#" data-view="kinerja" class="nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800/70">
+            <i class="fa-solid fa-trophy w-5 text-center text-amber-400"></i>
+            <span>Kinerja Pemanen</span>
+          </a>
+
+          <!-- 5. Target & Realisasi -->
+          <a href="#" data-view="target" class="nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800/70">
+            <i class="fa-solid fa-bullseye w-5 text-center text-amber-400"></i>
+            <span>Target & Realisasi</span>
+          </a>
+
+          <!-- 6. Grafik & Analisis -->
+          <a href="#" data-view="analisis" class="nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800/70">
+            <i class="fa-solid fa-chart-line w-5 text-center text-teal-400"></i>
+            <span>Grafik & Analisis</span>
+          </a>
+
+          <!-- 7. Laporan & Ekspor -->
+          <a href="#" data-view="laporan" class="nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800/70">
+            <i class="fa-solid fa-file-excel w-5 text-center text-emerald-400"></i>
+            <span>Laporan & Ekspor</span>
+          </a>
+
+          <div class="pt-2 pb-1 px-3">
+            <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Konfigurasi</div>
+          </div>
+
+          <!-- 8. Master Data -->
+          <a href="#" data-view="master" class="nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800/70">
+            <i class="fa-solid fa-database w-5 text-center text-slate-400"></i>
+            <span>Data Master Kebun</span>
+          </a>
+        </nav>
+      </div>
+
+      <!-- Sidebar Footer: Role & Version -->
+      <div class="p-4 border-t border-slate-800/80 bg-slate-950/40">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-full bg-emerald-700 text-white flex items-center justify-center font-bold text-xs">
+            <i class="fa-solid fa-user-gear"></i>
+          </div>
+          <div class="truncate text-xs">
+            <div class="font-bold text-white truncate" id="sidebar-user-name">Pengguna Aktif</div>
+            <div class="text-slate-400 text-[11px] flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Online (Tersimpan)
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- =========================================================================
+         MAIN APPLICATION AREA
+         ========================================================================= -->
+    <div class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+      <!-- Top Application Header -->
+      <header class="h-16 bg-white border-b border-slate-200/80 px-4 sm:px-6 flex items-center justify-between sticky top-0 z-40 shadow-xs">
+        <div class="flex items-center gap-3">
+          <!-- Mobile Sidebar Toggle -->
+          <button id="btn-toggle-sidebar" class="lg:hidden p-2 rounded-lg text-slate-600 hover:bg-slate-100 focus:outline-none">
+            <i class="fa-solid fa-bars text-lg"></i>
+          </button>
+          <!-- Estate Title -->
+          <div>
+            <h2 id="header-estate-name" class="font-bold text-sm sm:text-base text-slate-800 truncate">
+              PT Sawit Makmur Perkasa - Kebun Bukit Sentosa
+            </h2>
+            <div class="text-xs text-slate-500 hidden sm:flex items-center gap-2">
+              <span id="header-clock" class="font-mono text-emerald-800 font-medium">Memuat waktu...</span>
+              <span>&bull;</span>
+              <span class="text-slate-400">Riau, Indonesia</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Header: Role Switcher & Action Button -->
+        <div class="flex items-center gap-3">
+          <!-- Role Switcher Dropdown (Simulation) -->
+          <div class="flex items-center gap-2 bg-slate-100 p-1.5 rounded-xl border border-slate-200 text-xs">
+            <span class="text-slate-500 font-medium hidden md:inline pl-1">Hak Akses:</span>
+            <select id="role-selector" class="bg-white font-semibold text-slate-800 py-1 px-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:outline-none cursor-pointer">
+              <option value="admin">Admin (Akses Penuh)</option>
+              <option value="mandor">Mandor (Input & Pantau)</option>
+              <option value="manajer">Manajer (Eksekutif & Laporan)</option>
+            </select>
+          </div>
+
+          <!-- Quick Action: Input Panen -->
+          <button id="btn-quick-input-panen" class="bg-emerald-700 hover:bg-emerald-800 text-white font-semibold px-3.5 py-2 rounded-xl text-xs shadow-sm transition flex items-center gap-1.5">
+            <i class="fa-solid fa-plus-circle"></i>
+            <span class="hidden sm:inline">Input Panen</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Role Explanation Banner -->
+      <div id="role-banner" class="bg-emerald-50/90 border-b border-emerald-200/70 px-4 sm:px-6 py-2.5 flex items-center justify-between text-xs text-emerald-950">
+        <div class="flex items-center gap-2">
+          <span id="current-role-badge"></span>
+          <span id="role-banner-desc" class="text-emerald-900 font-medium"></span>
+        </div>
+        <div class="text-[11px] text-emerald-700 hidden lg:inline">
+          <i class="fa-solid fa-shield-halved"></i> Role-Based Access Simulation Active
+        </div>
+      </div>
+
+      <!-- Main Dynamic Content Container -->
+      <main id="view-content" class="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full">
+        <!-- Rendered by window.simpApp.navigateTo(...) -->
+      </main>
+
+      <!-- Footer -->
+      <footer class="bg-white border-t border-slate-200/70 py-4 px-6 text-center text-xs text-slate-500 no-print">
+        &copy; 2026 PT Sawit Makmur Perkasa &bull; Sistem Monitoring Panen & Produktivitas TBS Kelapa Sawit (SIMP-TBS)
+      </footer>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       MODALS
+       ========================================================================= -->
+
+  <!-- 1. Modal Input / Edit Panen TBS -->
+  <div id="modal-harvest" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl border border-slate-200 overflow-hidden animate-fade-in my-8">
+      <div class="p-5 bg-slate-900 text-white flex items-center justify-between">
+        <h3 id="modal-harvest-title" class="font-bold text-base flex items-center gap-2">
+          <i class="fa-solid fa-circle-plus text-emerald-400"></i> Input Data Panen Baru
+        </h3>
+        <button onclick="window.simpApp.closeHarvestModal()" class="text-slate-400 hover:text-white focus:outline-none">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <form id="harvest-form" class="p-6 space-y-4">
+        <!-- Tanggal, Afdeling, Blok -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Tanggal Panen *</label>
+            <input type="date" id="input-harvest-tanggal" required class="w-full text-xs p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Afdeling / Divisi *</label>
+            <select id="input-harvest-afdeling" required class="w-full text-xs p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Nomor Blok *</label>
+            <select id="input-harvest-blok" required class="w-full text-xs p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+            </select>
+            <div class="text-[10px] text-slate-400 mt-1">Luas Blok: <b id="display-block-luasha">-</b></div>
+          </div>
+        </div>
+
+        <!-- Mandor & Pemanen -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Mandor Panen *</label>
+            <select id="input-harvest-mandor" required class="w-full text-xs p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Karyawan Pemanen *</label>
+            <select id="input-harvest-pemanen" required class="w-full text-xs p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+            </select>
+          </div>
+        </div>
+
+        <!-- Janjang, Berat TBS, Brondolan -->
+        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+          <div class="text-xs font-bold text-slate-700 mb-3 flex items-center gap-1.5">
+            <i class="fa-solid fa-weight-hanging text-emerald-700"></i> Hasil Timbangan TPH
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Jumlah Janjang (Tandan) *</label>
+              <input type="number" id="input-harvest-janjang" min="1" step="1" required placeholder="Contoh: 75" class="w-full text-xs p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Berat TBS (Kg) *</label>
+              <input type="number" id="input-harvest-berat" min="1" step="1" required placeholder="Contoh: 1400" class="w-full text-xs p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Brondolan (Kg)</label>
+              <input type="number" id="input-harvest-brondolan" min="0" step="1" placeholder="Contoh: 85" class="w-full text-xs p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+            </div>
+          </div>
+
+          <!-- Real-time Automatic Calculation Bar -->
+          <div class="mt-4 pt-3 border-t border-slate-200/80 grid grid-cols-3 gap-2 text-center text-xs">
+            <div>
+              <span class="text-slate-400 block">Kalkulasi BJR:</span>
+              <b id="display-calc-bjr" class="text-emerald-800 text-sm">0.00 kg/janjang</b>
+            </div>
+            <div>
+              <span class="text-slate-400 block">Total Berat (Kg):</span>
+              <b id="display-calc-totalkg" class="text-slate-900 text-sm">0 kg</b>
+            </div>
+            <div>
+              <span class="text-slate-400 block">Total Ton:</span>
+              <b id="display-calc-totalton" class="text-emerald-700 text-sm font-black">0.000 ton</b>
+            </div>
+          </div>
+        </div>
+
+        <!-- Jam Kerja & Losses -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Jam Mulai Panen</label>
+            <input type="time" id="input-harvest-jammulai" value="06:30" class="w-full text-xs p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Jam Selesai Panen</label>
+            <input type="time" id="input-harvest-jamselesai" value="13:30" class="w-full text-xs p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Estimasi Losses (Kg)</label>
+            <input type="number" id="input-harvest-losses" min="0" value="5" class="w-full text-xs p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+          </div>
+        </div>
+
+        <!-- Kondisi Lapangan -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Keterangan Kondisi Lapangan</label>
+          <input type="text" id="input-harvest-kondisi" placeholder="Contoh: Cuaca cerah, pasar pikul bersih, buah matang merata..." class="w-full text-xs p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+        </div>
+
+        <!-- Buttons -->
+        <div class="pt-4 border-t border-slate-200 flex justify-end gap-2.5">
+          <button type="button" onclick="window.simpApp.closeHarvestModal()" class="px-4 py-2 border border-slate-300 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">
+            Batal
+          </button>
+          <button type="submit" class="px-5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold shadow-md transition flex items-center gap-1.5">
+            <i class="fa-solid fa-floppy-disk"></i> Simpan Data Panen
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 2. Modal Detail Panen -->
+  <div id="modal-harvest-detail" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl border border-slate-200 overflow-hidden animate-fade-in my-8">
+      <div class="p-4 bg-slate-900 text-white flex items-center justify-between">
+        <h3 class="font-bold text-sm flex items-center gap-2">
+          <i class="fa-solid fa-file-circle-check text-emerald-400"></i> Detail Aktivitas Panen TBS
+        </h3>
+        <button onclick="window.simpApp.closeDetailHarvestModal()" class="text-slate-400 hover:text-white focus:outline-none">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+      <div id="modal-harvest-detail-content" class="p-6">
+        <!-- Rendered dynamically -->
+      </div>
+      <div class="p-4 bg-slate-50 border-t border-slate-200 flex justify-end">
+        <button onclick="window.simpApp.closeDetailHarvestModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-xl text-xs font-bold transition">
+          Tutup
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Modal Target Kebun -->
+  <div id="modal-target" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden animate-fade-in my-8">
+      <div class="p-4 bg-slate-900 text-white flex items-center justify-between">
+        <h3 class="font-bold text-sm flex items-center gap-2">
+          <i class="fa-solid fa-sliders text-amber-400"></i> Konfigurasi Target Produksi
+        </h3>
+        <button onclick="window.simpApp.closeTargetModal()" class="text-slate-400 hover:text-white focus:outline-none">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+      <form id="target-form" class="p-6 space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Target Harian Kebun (Ton) *</label>
+          <input type="number" id="input-target-harian-kebun" step="0.1" required class="w-full text-xs p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Target Bulanan Kebun (Ton) *</label>
+          <input type="number" id="input-target-bulanan-kebun" step="1" required class="w-full text-xs p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+        </div>
+        <div class="pt-4 border-t border-slate-200 flex justify-end gap-2">
+          <button type="button" onclick="window.simpApp.closeTargetModal()" class="px-4 py-2 border border-slate-300 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">
+            Batal
+          </button>
+          <button type="submit" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-900 rounded-xl text-xs font-bold transition">
+            Simpan Target
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 4. Modal Master Blok -->
+  <div id="modal-block" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl border border-slate-200 overflow-hidden animate-fade-in my-8">
+      <div class="p-4 bg-slate-900 text-white flex items-center justify-between">
+        <h3 id="modal-block-title" class="font-bold text-sm flex items-center gap-2">
+          <i class="fa-solid fa-cubes text-emerald-400"></i> Kelola Blok Tanam
+        </h3>
+        <button onclick="window.simpApp.closeBlockModal()" class="text-slate-400 hover:text-white focus:outline-none">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+      <form id="block-form" class="p-6 space-y-3.5">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Kode Blok *</label>
+            <input type="text" id="input-block-kode" placeholder="Misal: A05" required class="w-full text-xs p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Afdeling *</label>
+            <select id="input-block-afdeling" required class="w-full text-xs p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none"></select>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Luas Areal (Ha) *</label>
+            <input type="number" id="input-block-luas" step="0.1" required class="w-full text-xs p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Tahun Tanam *</label>
+            <input type="number" id="input-block-tahun" required class="w-full text-xs p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Varietas Bibit</label>
+            <input type="text" id="input-block-varietas" placeholder="Marihat, Socfindo, Topaz..." class="w-full text-xs p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Jumlah Pokok (SPH)</label>
+            <input type="number" id="input-block-pokok" class="w-full text-xs p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Status Panen</label>
+          <select id="input-block-status" class="w-full text-xs p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+            <option value="Belum Panen">Belum Panen</option>
+            <option value="Sedang Berjalan">Sedang Berjalan</option>
+            <option value="Selesai">Selesai</option>
+          </select>
+        </div>
+        <div class="pt-4 border-t border-slate-200 flex justify-end gap-2">
+          <button type="button" onclick="window.simpApp.closeBlockModal()" class="px-4 py-2 border border-slate-300 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">Batal</button>
+          <button type="submit" class="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold transition">Simpan Blok</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 5. Modal Master Pemanen -->
+  <div id="modal-harvester" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl border border-slate-200 overflow-hidden animate-fade-in my-8">
+      <div class="p-4 bg-slate-900 text-white flex items-center justify-between">
+        <h3 id="modal-harvester-title" class="font-bold text-sm flex items-center gap-2">
+          <i class="fa-solid fa-user-plus text-emerald-400"></i> Kelola Data Pemanen
+        </h3>
+        <button onclick="window.simpApp.closeHarvesterModal()" class="text-slate-400 hover:text-white focus:outline-none">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+      <form id="harvester-form" class="p-6 space-y-3.5">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">NIK Pemanen *</label>
+            <input type="text" id="input-harvester-nik" required class="w-full text-xs p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Nama Lengkap *</label>
+            <input type="text" id="input-harvester-nama" required class="w-full text-xs p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Afdeling *</label>
+            <select id="input-harvester-afdeling" required class="w-full text-xs p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none"></select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Target Harian (Kg) *</label>
+            <input type="number" id="input-harvester-target" required class="w-full text-xs p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Hadir (Hari)</label>
+            <input type="number" id="input-harvester-hadir" class="w-full text-xs p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Total Hari Kerja</label>
+            <input type="number" id="input-harvester-totalhari" class="w-full text-xs p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Rating Kualitas Buah (%)</label>
+            <input type="number" id="input-harvester-kualitas" min="50" max="100" class="w-full text-xs p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Tingkat Losses (%)</label>
+            <input type="number" id="input-harvester-losses" step="0.1" class="w-full text-xs p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+          </div>
+        </div>
+        <div class="pt-4 border-t border-slate-200 flex justify-end gap-2">
+          <button type="button" onclick="window.simpApp.closeHarvesterModal()" class="px-4 py-2 border border-slate-300 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">Batal</button>
+          <button type="submit" class="px-4 py-2 bg-teal-700 hover:bg-teal-800 text-white rounded-xl text-xs font-bold transition">Simpan Pemanen</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container"></div>
+
+  <!-- Scripts -->
+  <script src="js/data.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/export.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
